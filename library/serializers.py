@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.db import transaction
 from rest_framework import serializers
 
 from library.models import Book, Borrowing
@@ -18,20 +19,41 @@ class BorrowingSerializer(serializers.ModelSerializer):
         model = Borrowing
         fields = ("id", "borrow_date", "expected_date", "book")
 
-    def validate_book(self, book):
-        if book.inventory == 0:
-            raise serializers.ValidationError({"book": "Inventory cannot be less than 1"})
-        return book
+    def validate_expected_date(self, value):
+        if value < date.today():
+            raise serializers.ValidationError("Expected date must be in future")
+        return value
 
     def create(self, validated_data):
         book = validated_data.pop("book")
-        book.inventory -= 1
-        book.save()
-        return Borrowing.objects.create(book=book, **validated_data)
+        request = self.context["request"]
+
+        with transaction.atomic():
+            if book.inventory < 1:
+                raise serializers.ValidationError("No books available")
+
+            book.inventory -= 1
+            book.save()
+
+            return Borrowing.objects.create(
+                book=book,
+                user=request.user,
+                **validated_data
+            )
 
 
-class BookDetailSerializer(BorrowingSerializer):
-    book = BookSerializer(many=False, read_only=True)
+class BorrowingDetailSerializer(serializers.ModelSerializer):
+    book = BookSerializer(read_only=True)
+
+    class Meta:
+        model = Borrowing
+        fields = (
+            "id",
+            "borrow_date",
+            "expected_date",
+            "actual_return_date",
+            "book",
+        )
 
 
 class BorrowingReturnSerializer(serializers.ModelSerializer):
@@ -46,12 +68,13 @@ class BorrowingReturnSerializer(serializers.ModelSerializer):
         return attrs
 
     def update(self, instance, validated_data):
-        instance.actual_return_date = date.today()
-        instance.save()
+        with transaction.atomic():
+            if instance.actual_return_date:
+                raise serializers.ValidationError("Already returned")
+            instance.actual_return_date = date.today()
+            instance.save()
 
-        instance.book.inventory += 1
-        instance.book.save()
+            instance.book.inventory += 1
+            instance.book.save()
 
         return instance
-
-
