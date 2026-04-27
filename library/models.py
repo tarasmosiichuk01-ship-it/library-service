@@ -19,6 +19,9 @@ class Book(models.Model):
         validators=[MinValueValidator(0.00)],
     )
 
+    def __str__(self):
+        return self.title
+
 
 class Borrowing(models.Model):
     borrow_date = models.DateField()
