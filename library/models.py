@@ -11,7 +11,7 @@ class Book(models.Model):
     title = models.CharField(max_length=63, unique=True)
     author = models.CharField(max_length=63, blank=True, null=True)
     cover = models.CharField(max_length=63, choices=CoverChoices.choices, default=CoverChoices.SOFT)
-    inventory = models.PositiveIntegerField(null=True)
+    inventory = models.PositiveIntegerField(default=0)
     daily_fee = models.DecimalField(
         max_digits=6,
         decimal_places=2,
@@ -24,8 +24,8 @@ class Book(models.Model):
 
 
 class Borrowing(models.Model):
-    borrow_date = models.DateField()
+    borrow_date = models.DateField(auto_now_add=True)
     expected_date = models.DateField()
-    actual_return_date = models.DateField()
-    book = models.ForeignKey(Book, on_delete=models.CASCADE)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    actual_return_date = models.DateField(null=True, blank=True)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="borrowings")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="borrowings")
