@@ -4,6 +4,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from library.models import Book, Borrowing
+from library.tasks import notify_new_borrowing
 
 
 class BookSerializer(serializers.ModelSerializer):
@@ -35,11 +36,13 @@ class BorrowingSerializer(serializers.ModelSerializer):
             book.inventory -= 1
             book.save()
 
-            return Borrowing.objects.create(
+            borrowing = Borrowing.objects.create(
                 book=book,
                 user=request.user,
                 **validated_data
             )
+            notify_new_borrowing.delay(borrowing.id)
+            return borrowing
 
 
 class BorrowingDetailSerializer(serializers.ModelSerializer):
