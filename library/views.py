@@ -14,6 +14,7 @@ class BookViewSet(viewsets.ModelViewSet):
 
 
 class BorrowingViewSet(viewsets.ModelViewSet):
+    queryset = Borrowing.objects.all()
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
