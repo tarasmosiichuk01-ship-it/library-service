@@ -35,7 +35,6 @@ def notify_overdue_borrowings():
         send_telegram_notification(message)
 
 
-
 @shared_task
 def notify_successful_payment():
     pass
