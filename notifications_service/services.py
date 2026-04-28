@@ -1,11 +1,11 @@
-import os
+from decouple import config
 
 import telebot
 
-bot_token = os.environ["TELEGRAM_BOT_TOKEN"]
+bot_token = config("TELEGRAM_BOT_TOKEN")
+chat_id = config("TELEGRAM_CHAT_ID")
 
 bot = telebot.TeleBot(bot_token)
 
-@bot.message_handler(commands=["start"])
-def send_telegram_notification(message):
-    bot.send_message(message.chat.id, "Hello!")
+def send_telegram_notification(message: str) -> None:
+    bot.send_message(chat_id=chat_id, text=message)
