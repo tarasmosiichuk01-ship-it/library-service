@@ -29,3 +29,23 @@ class Borrowing(models.Model):
     actual_return_date = models.DateField(null=True, blank=True)
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="borrowings")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="borrowings")
+
+
+class Payment(models.Model):
+
+    class StatusChoices(models.TextChoices):
+        PENDING = "pending", "Pending"
+        PAID = "paid", "Paid"
+
+
+    class TypeChoices(models.TextChoices):
+        PAYMENT = "payment", "Payment"
+        FINE ="fine", "Fine"
+
+    status = models.CharField(max_length=63, choices=StatusChoices.choices, default=StatusChoices.PENDING)
+    type = models.CharField(max_length=63, choices=TypeChoices.choices)
+    borrowing = models.ForeignKey(Borrowing, on_delete=models.CASCADE, related_name="payments")
+    session_url = models.URLField(max_length=255, blank=True, null=True)
+    session_id = models.CharField(max_length=255, blank=True, null=True)
+    money_to_pay = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+
