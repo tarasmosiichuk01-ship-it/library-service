@@ -2,7 +2,7 @@ from datetime import date
 
 from celery import shared_task
 
-from library.models import Borrowing
+from library.models import Borrowing, Payment
 from notifications_service.services import send_telegram_notification
 
 
@@ -36,5 +36,15 @@ def notify_overdue_borrowings():
 
 
 @shared_task
-def notify_successful_payment():
-    pass
+def notify_successful_payment(payment_id: int) -> None:
+    payment = Payment.objects.select_related(
+        "borrowing__book",
+        "borrowing__user"
+    ).get(id=payment_id)
+    message = (f"Your payment was successful! "
+               f"User: {payment.borrowing.user.email}, "
+               f"book: {payment.borrowing.book.title}, "
+               f"payment amount: {payment.money_to_pay} $, "
+               f"type: {payment.type}, "
+               f"date: {date.today()}")
+    send_telegram_notification(message)
