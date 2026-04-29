@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from library.models import Book, Borrowing, Payment
 from library.serializers import BookSerializer, BorrowingSerializer, BorrowingDetailSerializer, BorrowingReturnSerializer
-
+from library.tasks import notify_successful_payment
 
 class BookViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -73,6 +73,7 @@ class PaymentSuccess(APIView):
             payment = Payment.objects.get(session_id=payment_id)
             payment.status = Payment.StatusChoices.PAID
             payment.save()
+            notify_successful_payment.delay(payment.id)
 
             return Response({"message": "Payment successful!"}, status=status.HTTP_200_OK)
         except stripe.error.InvalidRequestError:
