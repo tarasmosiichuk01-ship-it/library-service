@@ -1,4 +1,5 @@
 import stripe
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -14,6 +15,32 @@ class BookViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Book.objects.all()
     serializer_class = BookSerializer
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "title",
+                type=str,
+                description="Filter by book title",
+                required=False,
+            ),
+            OpenApiParameter(
+                "author",
+                type=str,
+                description="Filter by book author",
+                required=False,
+            ),
+            OpenApiParameter(
+                "cover",
+                type=str,
+                description="Filter by book cover",
+                required=False,
+                enum=[choice[0] for choice in Book.CoverChoices.choices]
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class BorrowingViewSet(viewsets.ModelViewSet):
