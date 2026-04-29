@@ -1,4 +1,5 @@
 import stripe
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
@@ -40,6 +41,7 @@ class BookViewSet(viewsets.ModelViewSet):
         ]
     )
     def list(self, request, *args, **kwargs):
+        """Get list of books"""
         return super().list(request, *args, **kwargs)
 
 
@@ -88,6 +90,46 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         serializer.save()
 
         return Response(serializer.data)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "borrow_date",
+                type=OpenApiTypes.DATE,
+                description="Filter by borrowed date in format YYYY-MM-DD",
+                required=False,
+            ),
+            OpenApiParameter(
+                "expected_date",
+                type=OpenApiTypes.DATE,
+                description="Filter by expected date in format YYYY-MM-DD",
+                required=False,
+            ),
+            OpenApiParameter(
+                "actual_return_date",
+                type=OpenApiTypes.DATE,
+                description="Filter by actual return date in format YYYY-MM-DD",
+                required=False,
+            ),
+            OpenApiParameter(
+                "book",
+                type={"type": "array", "items": {"type": "number"}},
+                description="Filter by book id ex. ?book=2,3",
+                required=False,
+                explode=False,
+            ),
+            OpenApiParameter(
+                "user",
+                type={"type": "array", "items": {"type": "number"}},
+                description="Filter by user id ex. ?user=2,3",
+                required=False,
+                explode=False,
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        """Get list of posts"""
+        return super().list(request, *args, **kwargs)
 
 
 class PaymentSuccess(APIView):
