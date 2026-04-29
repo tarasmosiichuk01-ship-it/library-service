@@ -3,7 +3,8 @@ from datetime import date
 from django.db import transaction
 from rest_framework import serializers
 
-from library.models import Book, Borrowing
+from library.models import Book, Borrowing, Payment
+from library.stripe_service import stripe_checkout_session
 from library.tasks import notify_new_borrowing
 
 
@@ -15,10 +16,17 @@ class BookSerializer(serializers.ModelSerializer):
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
+    session_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Borrowing
-        fields = ("id", "borrow_date", "expected_date", "book")
+        fields = ("id", "borrow_date", "expected_date", "book", "session_url")
+
+    def get_session_url(self, obj):
+        payment = obj.payments.last()
+        if payment:
+            return payment.session_url
+        return None
 
     def validate_expected_date(self, value):
         if value < date.today():
@@ -41,7 +49,17 @@ class BorrowingSerializer(serializers.ModelSerializer):
                 user=request.user,
                 **validated_data
             )
+
             notify_new_borrowing.delay(borrowing.id)
+
+            session = stripe_checkout_session(borrowing)
+            Payment.objects.create(
+                session_id=session.id,
+                session_url=session.url,
+                borrowing=borrowing,
+                money_to_pay=((borrowing.expected_date - borrowing.borrow_date).days) * book.daily_fee,
+                type=Payment.TypeChoices.PAYMENT
+            )
             return borrowing
 
 
@@ -81,3 +99,10 @@ class BorrowingReturnSerializer(serializers.ModelSerializer):
             instance.book.save()
 
         return instance
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ("id", "status", "type", "borrowing", "session_url", "session_id", "money_to_pay")
+        read_only_fields = ("id", "session_url", "session_id")
