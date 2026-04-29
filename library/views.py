@@ -128,7 +128,7 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         ]
     )
     def list(self, request, *args, **kwargs):
-        """Get list of posts"""
+        """Get list of borrowings"""
         return super().list(request, *args, **kwargs)
 
 
