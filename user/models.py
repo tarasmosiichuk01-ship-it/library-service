@@ -1,6 +1,9 @@
 from django.db import models
 from django.utils.translation import gettext as _
-from django.contrib.auth.models import AbstractUser, UserManager as DjangoUserManager
+from django.contrib.auth.models import (
+    AbstractUser,
+    UserManager as DjangoUserManager
+)
 
 
 class UserManager(DjangoUserManager):
@@ -39,7 +42,13 @@ class UserManager(DjangoUserManager):
 
 class User(AbstractUser):
 
-    username = models.CharField(_('username'), max_length=30, unique=True, blank=True, null=True)
+    username = models.CharField(
+        _('username'),
+        max_length=30,
+        unique=True,
+        blank=True,
+        null=True
+    )
     email = models.EmailField(_("email address"), unique=True)
 
     USERNAME_FIELD = "email"

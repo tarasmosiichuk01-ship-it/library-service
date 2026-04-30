@@ -7,7 +7,11 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from library.models import Book, Borrowing, Payment
-from library.tasks import notify_new_borrowing, notify_overdue_borrowings, notify_successful_payment
+from library.tasks import (
+    notify_new_borrowing,
+    notify_overdue_borrowings,
+    notify_successful_payment
+)
 
 
 class TestTasks(TestCase):
@@ -42,13 +46,18 @@ class TestTasks(TestCase):
 
     @patch("library.tasks.send_telegram_notification")
     def test_notify_new_borrowing(self, mock_notify):
-        message = f"New borrowing: title: {self.borrowing.book.title}, borrow date: {self.borrowing.borrow_date}, expected date: {self.borrowing.expected_date}"
+        message = (
+            f"New borrowing: title: {self.borrowing.book.title}, "
+            f"borrow date: {self.borrowing.borrow_date}, "
+            f"expected date: {self.borrowing.expected_date}"
+        )
         notify_new_borrowing(self.borrowing.id)
         mock_notify.assert_called_once()
         mock_notify.assert_called_with(message)
 
-
-    @patch("library.tasks.send_telegram_notification")
+    @patch(
+        "library.tasks.send_telegram_notification"
+    )
     def test_notify_overdue_borrowings_with_overduer(self, mock_notify):
         borrowings = Borrowing.objects.create(
             expected_date=date.today() - timedelta(days=1),
@@ -57,7 +66,7 @@ class TestTasks(TestCase):
             user=self.user,
         )
         message = "\n".join([
-            f"Found 1 overdue borrowings:",
+            "Found 1 overdue borrowings:",
             f"Book: {self.book.title}, "
             f"Expected date: {borrowings.expected_date}, "
             f"Days overdue: {(date.today() - borrowings.expected_date).days}, "
@@ -76,13 +85,14 @@ class TestTasks(TestCase):
 
     @patch("library.tasks.send_telegram_notification")
     def test_notify_successful_payment(self, mock_notify):
-        message = (f"Your payment was successful! "
-               f"User: {self.payment.borrowing.user.email}, "
-               f"book: {self.payment.borrowing.book.title}, "
-               f"payment amount: {self.payment.money_to_pay} $, "
-               f"type: {self.payment.type}, "
-               f"date: {date.today()}")
+        message = (
+            f"Your payment was successful! "
+            f"User: {self.payment.borrowing.user.email}, "
+            f"book: {self.payment.borrowing.book.title}, "
+            f"payment amount: {self.payment.money_to_pay} $, "
+            f"type: {self.payment.type}, "
+            f"date: {date.today()}"
+        )
         notify_successful_payment(self.payment.id)
         mock_notify.assert_called_once()
         mock_notify.assert_called_once_with(message)
-

@@ -30,7 +30,9 @@ class BorrowingSerializer(serializers.ModelSerializer):
 
     def validate_expected_date(self, value):
         if value < date.today():
-            raise serializers.ValidationError("Expected date must be in future")
+            raise serializers.ValidationError(
+                "Expected date must be in future"
+            )
         return value
 
     def create(self, validated_data):
@@ -57,7 +59,10 @@ class BorrowingSerializer(serializers.ModelSerializer):
                 session_id=session.id,
                 session_url=session.url,
                 borrowing=borrowing,
-                money_to_pay=((borrowing.expected_date - borrowing.borrow_date).days) * book.daily_fee,
+                money_to_pay=((
+                                      borrowing.expected_date
+                                      - borrowing.borrow_date
+                              ).days) * book.daily_fee,
                 type=Payment.TypeChoices.PAYMENT
             )
             return borrowing
@@ -104,5 +109,13 @@ class BorrowingReturnSerializer(serializers.ModelSerializer):
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
-        fields = ("id", "status", "type", "borrowing", "session_url", "session_id", "money_to_pay")
+        fields = (
+            "id",
+            "status",
+            "type",
+            "borrowing",
+            "session_url",
+            "session_id",
+            "money_to_pay"
+        )
         read_only_fields = ("id", "session_url", "session_id")

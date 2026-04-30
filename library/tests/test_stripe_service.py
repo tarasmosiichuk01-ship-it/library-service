@@ -65,4 +65,3 @@ class TestStripeService(TestCase):
 
         self.assertEqual(session.id, "test_session_id")
         self.assertEqual(session.url, "https://stripe.com/test")
-

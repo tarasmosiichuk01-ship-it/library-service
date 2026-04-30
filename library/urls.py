@@ -1,7 +1,12 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from library.views import BookViewSet, BorrowingViewSet, PaymentSuccess, PaymentCancel
+from library.views import (
+    BookViewSet,
+    BorrowingViewSet,
+    PaymentSuccess,
+    PaymentCancel
+)
 
 app_name = "library"
 
@@ -14,4 +19,3 @@ urlpatterns = [
     path("payments/success/", PaymentSuccess.as_view(), name="success"),
     path("payments/cancel/", PaymentCancel.as_view(), name="cancel"),
 ]
-

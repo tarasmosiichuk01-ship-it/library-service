@@ -11,6 +11,7 @@ from library.models import Book, Borrowing, Payment
 SUCCESS_URL = reverse("library:success")
 CANCEL_URL = reverse("library:cancel")
 
+
 class TestPaymentApi(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -42,18 +43,33 @@ class TestPaymentApi(TestCase):
         )
 
     @patch("library.views.notify_successful_payment.delay")
-    @patch("library.views.stripe.checkout.Session.retrieve")
-    def test_payment_success_with_valid_session_id(self, mock_stripe, mock_notify):
+    @patch(
+        "library.views.stripe.checkout.Session.retrieve"
+    )
+    def test_payment_success_with_valid_session_id(
+            self,
+            mock_stripe,
+            mock_notify
+    ):
         mock_stripe.return_value.id = "test_session_id"
-        res = self.client.get(SUCCESS_URL, {"session_id": self.payment.session_id})
+        res = self.client.get(
+            SUCCESS_URL,
+            {"session_id": self.payment.session_id}
+        )
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.payment.refresh_from_db()
         self.assertEqual(self.payment.status, Payment.StatusChoices.PAID)
 
     @patch("library.views.stripe.checkout.Session.retrieve")
     def test_payment_success_with_invalid_session_id(self, mock_stripe):
-        mock_stripe.side_effect = stripe.error.InvalidRequestError("Invalid", "session_id")
-        res = self.client.get(SUCCESS_URL, {"session_id": self.payment.session_id})
+        mock_stripe.side_effect = stripe.error.InvalidRequestError(
+            "Invalid",
+            "session_id"
+        )
+        res = self.client.get(
+            SUCCESS_URL,
+            {"session_id": self.payment.session_id}
+        )
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_payment_cancel(self):
