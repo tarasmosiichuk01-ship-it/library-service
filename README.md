@@ -2,7 +2,18 @@
 
 API service for library management written on DRF
 
-## Running the project
+## Running with Docker
+
+1. Clone the repository git clone https://github.com/tarasmosiichuk01-ship-it/library-service.git
+2. cd library-service
+3. Create `.env` file based on `.env.example`
+4. Run the following command:
+
+```bash
+docker-compose up --build
+```
+
+## Running locally (without Docker)
 
 1. Clone the repository git clone https://github.com/tarasmosiichuk01-ship-it/library-service.git
 2. cd library-service
@@ -17,7 +28,6 @@ celery -A library_service worker --loglevel=info --pool=solo
 celery -A library_service beat --loglevel=info
 python manage.py runserver
 ```
-
 
 ## Getting access
 
